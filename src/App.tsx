@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, Copy, RotateCcw, Settings, Eye, EyeOff, Zap, Info, BookOpen } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Copy, RotateCcw, Settings, Eye, EyeOff, Zap, Info, BookOpen, CheckCircle, XCircle, BarChart3, Download, Upload } from 'lucide-react';
 import { BPETokenizer } from './tokenizer/BPETokenizer';
 import { SimpleTokenizer } from './tokenizer/SimpleTokenizer';
 import { CharacterTokenizer } from './tokenizer/CharacterTokenizer';
@@ -30,6 +30,9 @@ ASCII Art:
   const [tokenizerType, setTokenizerType] = useState<TokenizerType>('bpe');
   const [isTraining, setIsTraining] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [validationResult, setValidationResult] = useState<any>(null);
+  const [showStats, setShowStats] = useState(false);
+  const [benchmarkResults, setBenchmarkResults] = useState<any>(null);
 
   // Initialize tokenizers
   const [bpeTokenizer] = useState(() => new BPETokenizer({ vocabSize: 500 }));
@@ -39,6 +42,7 @@ ASCII Art:
   // Train tokenizers and get results
   const tokenizerResult = useMemo((): TokenizerResult => {
     setIsTraining(true);
+    setValidationResult(null);
     
     try {
       let result: TokenizerResult;
@@ -106,6 +110,12 @@ ASCII Art:
           break;
       }
       
+      // Validate round-trip correctness
+      if (tokenizerType === 'bpe') {
+        const validation = bpeTokenizer.validateRoundTrip(inputText);
+        setValidationResult(validation);
+      }
+      
       setInputText(text);
     } catch (error) {
       console.error('Error detokenizing:', error);
@@ -115,6 +125,12 @@ ASCII Art:
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    // Show toast notification
+    const toast = document.createElement('div');
+    toast.textContent = 'Copied to clipboard!';
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    document.body.appendChild(toast);
+    setTimeout(() => document.body.removeChild(toast), 2000);
   };
 
   const resetAll = () => {
@@ -129,8 +145,37 @@ ASCII Art:
 │ Demo        │
 └─────────────┘`);
     setTokenIds('');
+    setValidationResult(null);
+    setBenchmarkResults(null);
   };
 
+  const runBenchmark = () => {
+    const testTexts = [
+      "Hello world!",
+      "The quick brown fox jumps over the lazy dog.",
+      "Artificial intelligence and machine learning are transforming technology.",
+      "🚀 Unicode characters: café, naïve, résumé, Москва, 北京, 東京",
+      "Code example: function tokenize(text) { return text.split(' '); }"
+    ];
+    
+    if (tokenizerType === 'bpe') {
+      const results = bpeTokenizer.benchmark(testTexts);
+      setBenchmarkResults(results);
+    }
+  };
+
+  const exportVocabulary = () => {
+    if (tokenizerType === 'bpe') {
+      const vocabData = bpeTokenizer.exportVocabulary();
+      const blob = new Blob([JSON.stringify(vocabData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tokenizer-vocabulary.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
   const renderColoredTokens = () => {
     const colors = [
       'bg-red-100 text-red-800 border-red-200',
@@ -225,6 +270,13 @@ ASCII Art:
               <Info className="w-4 h-4" />
               Info
             </button>
+            <button
+              onClick={() => setShowStats(!showStats)}
+              className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Stats
+            </button>
             <select
               value={tokenizerType}
               onChange={(e) => setTokenizerType(e.target.value as TokenizerType)}
@@ -263,6 +315,123 @@ ASCII Art:
                   <p className="text-sm text-gray-600">{info.details}</p>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Stats Panel */}
+        {showStats && tokenizerResult.stats && (
+          <div className="mb-8 bg-white rounded-xl border border-purple-200 shadow-sm">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <BarChart3 className="w-5 h-5 text-purple-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Performance Statistics</h3>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {tokenizerResult.stats.compressionRatio.toFixed(2)}x
+                  </div>
+                  <div className="text-sm text-blue-800">Compression Ratio</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {tokenizerResult.stats.trainingTime.toFixed(1)}ms
+                  </div>
+                  <div className="text-sm text-green-800">Training Time</div>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {tokenizerResult.stats.tokenizationTime.toFixed(1)}ms
+                  </div>
+                  <div className="text-sm text-orange-800">Tokenization Time</div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {(tokenizerResult.stats.vocabularyEfficiency * 100).toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-purple-800">Vocab Efficiency</div>
+                </div>
+              </div>
+              
+              {/* Validation Results */}
+              {validationResult && (
+                <div className="mt-6 p-4 rounded-lg border-2 border-dashed" 
+                     style={{
+                       borderColor: validationResult.isValid ? '#10b981' : '#ef4444',
+                       backgroundColor: validationResult.isValid ? '#f0fdf4' : '#fef2f2'
+                     }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    {validationResult.isValid ? (
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    )}
+                    <span className="font-medium" style={{
+                      color: validationResult.isValid ? '#059669' : '#dc2626'
+                    }}>
+                      Round-trip Validation: {validationResult.isValid ? 'PASSED' : 'FAILED'}
+                    </span>
+                  </div>
+                  {!validationResult.isValid && validationResult.errors.length > 0 && (
+                    <div className="text-sm text-red-700">
+                      Errors: {validationResult.errors.join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Benchmark Controls */}
+              <div className="mt-6 flex gap-4">
+                <button
+                  onClick={runBenchmark}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  Run Benchmark
+                </button>
+                <button
+                  onClick={exportVocabulary}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export Vocab
+                </button>
+              </div>
+              
+              {/* Benchmark Results */}
+              {benchmarkResults && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-3">Benchmark Results</h4>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-gray-600">Round-trip Accuracy:</div>
+                      <div className="font-mono text-lg">{benchmarkResults.roundTripAccuracy.toFixed(1)}%</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Avg Compression:</div>
+                      <div className="font-mono text-lg">{benchmarkResults.averageCompressionRatio.toFixed(2)}x</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Avg Training Time:</div>
+                      <div className="font-mono text-lg">{benchmarkResults.averageTrainingTime.toFixed(1)}ms</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Avg Tokenization:</div>
+                      <div className="font-mono text-lg">{benchmarkResults.averageTokenizationTime.toFixed(1)}ms</div>
+                    </div>
+                  </div>
+                  {benchmarkResults.errors.length > 0 && (
+                    <div className="mt-3 p-3 bg-red-50 rounded border-l-4 border-red-400">
+                      <div className="text-red-800 font-medium">Errors:</div>
+                      <ul className="text-red-700 text-sm mt-1">
+                        {benchmarkResults.errors.map((error: string, index: number) => (
+                          <li key={index}>• {error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
