@@ -38,11 +38,18 @@ function App() {
   
   const detokenizeIds = () => {
     try {
-      const ids = tokenIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      const ids = tokenIds.split(',')
+        .map(id => id.trim())
+        .filter(id => id !== '')
+        .map(id => parseInt(id))
+        .filter(id => !isNaN(id));
+      
       const text = ids.map(id => tokenizerResult.reverseVocabulary.get(id) || '�').join('');
       setInputText(text);
     } catch (error) {
       console.error('Error detokenizing:', error);
+      // Show error feedback to user
+      alert('Error: Please enter valid comma-separated token IDs');
     }
   };
   
