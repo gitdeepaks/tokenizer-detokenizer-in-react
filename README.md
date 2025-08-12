@@ -4,7 +4,7 @@ A comprehensive React-based tokenization tool that implements multiple tokenizat
 
 ## 🎬 Live Demo
 
-**🌐 Try it live:** [https://phenomenal-lebkuchen-59236d.netlify.app](https://phenomenal-lebkuchen-59236d.netlify.app)
+**🌐 Try it live:** [Please check it out](https://texttokenizer.netlify.app)
 
 ## 📸 Project Screenshots & Demo
 
@@ -642,29 +642,3 @@ npm run test
 # Build verification
 npm run build
 ```
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🌟 Star History
-
-If you find this project helpful, please consider giving it a star! ⭐
-
-## 📞 Support
-
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-username/custom-tokenizer/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/your-username/custom-tokenizer/discussions)
-- 📧 **Email**: your-email@example.com
-- 💬 **Discord**: [Join our community](https://discord.gg/your-invite)
-
-## 🙏 Acknowledgments
-
-- Inspired by modern tokenization tools like tiktoken
-- Built with modern React and TypeScript best practices
-- Uses efficient algorithms from NLP research
-- Designed for both educational and practical use
-
----
-
-**Built with ❤️ for the NLP and ML community**
