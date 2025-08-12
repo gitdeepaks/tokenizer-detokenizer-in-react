@@ -8,7 +8,7 @@ interface TokenizerResult {
 }
 
 function App() {
-  const [inputText, setInputText] = useState('Hello, AI token! 🚀');
+  const [inputText, setInputText] = useState('Hello, AI token! 🚀\n┌─────────────┐\n│ ASCII Art!  │\n└─────────────┘\n@#$%^&*()_+-=[]{}|;:,.<>?/~`');
   const [tokenIds, setTokenIds] = useState('');
   
   // Create vocabulary and tokenize text
@@ -51,7 +51,7 @@ function App() {
   };
   
   const resetAll = () => {
-    setInputText('Hello, AI token! 🚀');
+    setInputText('Hello, AI token! 🚀\n┌─────────────┐\n│ ASCII Art!  │\n└─────────────┘\n@#$%^&*()_+-=[]{}|;:,.<>?/~`');
     setTokenIds('');
   };
   
