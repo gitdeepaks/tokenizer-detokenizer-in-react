@@ -25,7 +25,7 @@ A comprehensive React-based tokenization tool that implements multiple tokenizat
 
 ## 🛠️ Technology Stack
 
-- **React 18** - Modern React with hooks
+- **React 19** - Modern React with hooks
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
 - **Vite** - Fast build tool and dev server
