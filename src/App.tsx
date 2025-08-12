@@ -44,6 +44,16 @@ ASCII Art:
     setIsTraining(true);
     setValidationResult(null);
     
+    // Check if input text is empty or only whitespace
+    if (!inputText || inputText.trim() === '') {
+      setIsTraining(false);
+      return {
+        tokens: [],
+        vocabulary: new Map<string, number>(),
+        reverseVocabulary: new Map<number, string>()
+      };
+    }
+    
     try {
       let result: TokenizerResult;
       
